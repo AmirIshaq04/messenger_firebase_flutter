@@ -81,122 +81,125 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
-      bloc: getIt<AuthCubit>(),
-      listenWhen: (previous, current) {
-        return previous.status != current.status ||
-            previous.error != current.error;
-      },
-      listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
-          getIt<AppRouter>().pushAndRemoveUntil(HomeScreen());
-        } else if (state.status == AuthStatus.error && state.error != null) {
-          ShowToast.flutterToast(context, message: state.error.toString());
-        }
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: 20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 30,
+    return BlocConsumer<AuthCubit, AuthState>(
+        bloc: getIt<AuthCubit>(),
+        // listenWhen: (previous, current) {
+        //   return previous.status != current.status ||
+        //       previous.error != current.error;
+        // },
+        listener: (context, state) {
+          if (state.status == AuthStatus.authenticated) {
+            getIt<AppRouter>().pushAndRemoveUntil(HomeScreen());
+          } else if (state.status == AuthStatus.error && state.error != null) {
+            ShowToast.flutterToast(context, message: state.error.toString());
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: SafeArea(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20,
                   ),
-                  Text(
-                    'Welcome Back',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(fontWeight: FontWeight.w400),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    'Sign in to continue',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: Colors.grey),
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  CustomTextfield(
-                      obsecreText: false,
-                      focusNode: _emailFocus,
-                      validator: _validateEmail,
-                      prefexIcon: Icon(Icons.email_outlined),
-                      controller: emailController,
-                      hintText: 'Enter your email'),
-                  SizedBox(
-                    height: 16,
-                  ),
-                  CustomTextfield(
-                      focusNode: _passwordFocus,
-                      validator: _validatePassword,
-                      prefexIcon: Icon(Icons.lock_open_outlined),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                        icon: _isPasswordVisible
-                            ? Icon(Icons.visibility_off)
-                            : Icon(Icons.visibility),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 30,
                       ),
-                      obsecreText: !_isPasswordVisible,
-                      controller: passwordController,
-                      hintText: 'Enter your Password'),
-                  SizedBox(
-                    height: 50,
-                  ),
-                  Builder(builder: (context) {
-                    return CustomButton(
-                      onPressed: handleSignIn,
-                      text: 'Login',
-                    );
-                  }),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Center(
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Don't have an account?",
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                        ),
-                        children: [
-                          TextSpan(
-                            text: ' Sign up',
-                            style:
-                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      Text(
+                        'Welcome Back',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.w400),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        'Sign in to continue',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: Colors.grey),
+                      ),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      CustomTextfield(
+                          obsecreText: false,
+                          focusNode: _emailFocus,
+                          validator: _validateEmail,
+                          prefexIcon: Icon(Icons.email_outlined),
+                          controller: emailController,
+                          hintText: 'Enter your email'),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      CustomTextfield(
+                          focusNode: _passwordFocus,
+                          validator: _validatePassword,
+                          prefexIcon: Icon(Icons.lock_open_outlined),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                            icon: _isPasswordVisible
+                                ? Icon(Icons.visibility_off)
+                                : Icon(Icons.visibility),
+                          ),
+                          obsecreText: !_isPasswordVisible,
+                          controller: passwordController,
+                          hintText: 'Enter your Password'),
+                      SizedBox(
+                        height: 50,
+                      ),
+                      CustomButton(
+                        onPressed: handleSignIn,
+                      child: state.status==AuthStatus.loading? CircularProgressIndicator(
+                        color: Colors.white,
+                      ):Text('Login')
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Center(
+                        child: RichText(
+                          text: TextSpan(
+                            text: "Don't have an account?",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                            children: [
+                              TextSpan(
+                                text: ' Sign up',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
                                       color: Theme.of(context).primaryColor,
                                       fontWeight: FontWeight.bold,
                                     ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                getIt<AppRouter>().push(SignUp());
-                              },
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    getIt<AppRouter>().push(SignUp());
+                                  },
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
+          );
+        });
   }
 }

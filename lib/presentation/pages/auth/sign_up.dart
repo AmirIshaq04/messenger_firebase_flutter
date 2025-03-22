@@ -110,21 +110,21 @@ class _SignUpState extends State<SignUp> {
             phoneNumber: phoneController.text.trim(),
             password: passwordController.text.trim());
       } catch (e) {
-        Fluttertoast.showToast(
-            msg: "$e",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
+        // Fluttertoast.showToast(
+        //     msg: "$e",
+        //     toastLength: Toast.LENGTH_SHORT,
+        //     gravity: ToastGravity.CENTER,
+        //     timeInSecForIosWeb: 1,
+        //     backgroundColor: Colors.red,
+        //     textColor: Colors.white,
+        //     fontSize: 16.0);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
+    return BlocConsumer<AuthCubit, AuthState>(
       bloc: getIt<AuthCubit>(),
       // listenWhen: (previous, current) {
       //   return previous.status != current.status ||
@@ -137,153 +137,160 @@ class _SignUpState extends State<SignUp> {
           ShowToast.flutterToast(context, message: state.error.toString());
         }
       },
-      child: Scaffold(
-        appBar: AppBar(),
-        body: SafeArea(
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: 20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Text(
-                    'Create account',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(fontWeight: FontWeight.w400),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    'Please fill the details to continue',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: Colors.grey),
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  CustomTextfield(
-                      obsecreText: false,
-                      focusNode: _emailFocus,
-                      validator: _validateEmail,
-                      controller: emailController,
-                      prefexIcon: Icon(
-                        Icons.email_outlined,
-                        size: 20,
-                      ),
-                      hintText: 'Email'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  CustomTextfield(
-                      obsecreText: false,
-                      focusNode: _nameFocus,
-                      validator: _validateName,
-                      prefexIcon: Icon(
-                        Icons.person_2_outlined,
-                        size: 20,
-                      ),
-                      controller: nameController,
-                      hintText: 'Full name'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  CustomTextfield(
-                      obsecreText: false,
-                      focusNode: _userNameFocus,
-                      validator: _validateUserName,
-                      prefexIcon: Icon(
-                        Icons.alternate_email,
-                        size: 20,
-                      ),
-                      controller: usernameController,
-                      hintText: 'User name'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  CustomTextfield(
-                      obsecreText: false,
-                      focusNode: _phoneFocus,
-                      validator: _validatePhone,
-                      prefexIcon: Icon(
-                        Icons.call_end_outlined,
-                        size: 20,
-                      ),
-                      controller: phoneController,
-                      hintText: 'Phone number'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  CustomTextfield(
-                      obsecreText: !_isPasswordVisible,
-                      focusNode: _passwordFocus,
-                      validator: _validatePassword,
-                      prefexIcon: Icon(
-                        Icons.lock_outline,
-                        size: 20,
-                      ),
-                      controller: passwordController,
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                        icon: _isPasswordVisible
-                            ? Icon(Icons.visibility_off)
-                            : Icon(Icons.visibility),
-                      ),
-                      hintText: 'password'),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  CustomButton(
-                    onPressed: handleSignup,
-                    text: 'Create Account',
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Center(
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Already have an account?",
-                        style: TextStyle(
-                          color: Colors.grey[600],
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(),
+          body: SafeArea(
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 30,
+                    ),
+                    Text(
+                      'Create account',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w400),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      'Please fill the details to continue',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(color: Colors.grey),
+                    ),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    CustomTextfield(
+                        obsecreText: false,
+                        focusNode: _emailFocus,
+                        validator: _validateEmail,
+                        controller: emailController,
+                        prefexIcon: Icon(
+                          Icons.email_outlined,
+                          size: 20,
                         ),
-                        children: [
-                          TextSpan(
-                            text: ' Login',
-                            style:
-                                Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: Theme.of(context).primaryColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                Navigator.pop(context);
-                              },
+                        hintText: 'Email'),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    CustomTextfield(
+                        obsecreText: false,
+                        focusNode: _nameFocus,
+                        validator: _validateName,
+                        prefexIcon: Icon(
+                          Icons.person_2_outlined,
+                          size: 20,
+                        ),
+                        controller: nameController,
+                        hintText: 'Full name'),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    CustomTextfield(
+                        obsecreText: false,
+                        focusNode: _userNameFocus,
+                        validator: _validateUserName,
+                        prefexIcon: Icon(
+                          Icons.alternate_email,
+                          size: 20,
+                        ),
+                        controller: usernameController,
+                        hintText: 'User name'),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    CustomTextfield(
+                        obsecreText: false,
+                        focusNode: _phoneFocus,
+                        validator: _validatePhone,
+                        prefexIcon: Icon(
+                          Icons.call_end_outlined,
+                          size: 20,
+                        ),
+                        controller: phoneController,
+                        hintText: 'Phone number'),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    CustomTextfield(
+                        obsecreText: !_isPasswordVisible,
+                        focusNode: _passwordFocus,
+                        validator: _validatePassword,
+                        prefexIcon: Icon(
+                          Icons.lock_outline,
+                          size: 20,
+                        ),
+                        controller: passwordController,
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                          icon: _isPasswordVisible
+                              ? Icon(Icons.visibility_off)
+                              : Icon(Icons.visibility),
+                        ),
+                        hintText: 'password'),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    CustomButton(
+                        onPressed: handleSignup,
+                        child: state.status == AuthStatus.loading
+                            ? CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text('Create Account')),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Center(
+                      child: RichText(
+                        text: TextSpan(
+                          text: "Already have an account?",
+                          style: TextStyle(
+                            color: Colors.grey[600],
                           ),
-                        ],
+                          children: [
+                            TextSpan(
+                              text: ' Login',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.pop(context);
+                                },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
