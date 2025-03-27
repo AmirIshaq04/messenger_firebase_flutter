@@ -42,6 +42,7 @@ dependencies:
   equatable: ^2.0.7
   fluttertoast: ^8.2.12
   flutter_contacts: ^1.1.9+2
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

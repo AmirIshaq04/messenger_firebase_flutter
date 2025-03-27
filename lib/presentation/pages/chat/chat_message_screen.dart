@@ -3,6 +3,7 @@ import 'package:chatting_app_flutter/data/services/service_locator.dart';
 import 'package:chatting_app_flutter/logic/cubits/chat/chat_cubit.dart';
 import 'package:chatting_app_flutter/logic/cubits/chat/chat_cubit_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +40,7 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
   @override
   void dispose() {
     messageController.dispose();
+    chatCubit.leaveChat();
     super.dispose();
   }
 
@@ -61,10 +63,43 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.receiverName),
-                Text(
-                  "Online",
-                  style: TextStyle(color: Colors.green, fontSize: 12),
-                ),
+                BlocBuilder<ChatCubit, ChatCubitState>(
+                  bloc: chatCubit,
+                  builder: (context, state) {
+                    if (state.isReceiverTyping) {
+                      return Row(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(
+                              right: 4,
+                            ),
+                            child: Text("Typing..."),
+                          ),
+                          Text(
+                            "Typing",
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    if (state.isReceiverOnline) {
+                      return Text(
+                        "Online",
+                        style: TextStyle(color: Colors.green, fontSize: 14),
+                      );
+                    }
+                    if (state.receiverLastSeen != null) {
+                      final lastSeen = state.receiverLastSeen!.toDate();
+                      return Text(
+                        "last seen at ${DateFormat('h:mm:a').format(lastSeen)}",
+                        style: TextStyle(color: Colors.grey[600]),
+                      );
+                    }
+                    return SizedBox();
+                  },
+                )
               ],
             ),
           ],
@@ -182,21 +217,27 @@ class MessageBubble extends StatelessWidget {
               chatMessage.content,
               style: TextStyle(color: isMe ? Colors.white : Colors.black),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "5.48",
-                  style: TextStyle(color: isMe ? Colors.white : Colors.black),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(
+                DateFormat('h:mm:a').format(
+                  chatMessage.timestamp.toDate(),
+                ),
+                style: TextStyle(
+                    color: isMe ? Colors.white : Colors.black, fontSize: 9),
+              ),
+              if (isMe) ...[
+                SizedBox(
+                  width: 4,
                 ),
                 Icon(
                   Icons.done_all,
+                  size: 14,
                   color: chatMessage.status == MessageStatus.read
                       ? Colors.red
                       : Colors.white70,
                 )
               ],
-            ),
+            ]),
           ],
         ),
       ),

@@ -13,7 +13,7 @@ class ChatRepository extends BaseRepository {
       String currentUserId, String otherUserId) async {
     final users = [currentUserId, otherUserId]..sort();
     final roomId = users.join("_");
-    final roomDoc = await chatRooms.doc("roomId").get();
+    final roomDoc = await chatRooms.doc(roomId).get();
     if (roomDoc.exists) {
       return ChatRoomModel.fromFirestore(roomDoc);
     }
@@ -122,5 +122,78 @@ class ChatRepository extends BaseRepository {
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatRoomModel.fromFirestore(doc))
             .toList());
+  }
+
+  Stream<int> getUnreadMessageCount(String chatRoomId, String userId) {
+    return getChatRoomMessages(chatRoomId)
+        .where("receiverId", isEqualTo: userId)
+        .where("status", isEqualTo: MessageStatus.sent.toString())
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  Future<void> markMessagesAsRead(String chatRoomId, String userId) async {
+    try {
+      final batch = firebaseFirestor.batch();
+      final unReadMessages = await getChatRoomMessages(chatRoomId)
+          .where("receiverId", isEqualTo: userId)
+          .where(
+            "status",
+            isEqualTo: MessageStatus.sent.toString(),
+          )
+          .get();
+      for (final doc in unReadMessages.docs) {
+        batch.update(
+          doc.reference,
+          {
+            "readBy": FieldValue.arrayUnion([userId]),
+            "status": MessageStatus.read.toString(),
+          },
+        );
+        await batch.commit();
+        print("marked messages as read$userId");
+      }
+    } catch (e) {
+      print("error$e");
+    }
+  }
+
+  Stream<Map<String, dynamic>> getUserOnlineStatus(String userId) {
+    return firebaseFirestor
+        .collection("users")
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) {
+      final data = snapshot.data();
+      return {
+        "isOnline": data?["isOnline"] ?? false,
+        "lastSeen": data?["lastSeen"],
+      };
+    });
+  }
+
+  Future<void> updateOnoineStatus(String userId, bool isOnline) async {
+    await firebaseFirestor.collection("users").doc(userId).update({
+      "isOnline": isOnline,
+      "lastSeen": Timestamp.now(),
+    });
+  }
+
+  Stream<Map<String, dynamic>> getUserTypingStatus(String chatRoomId) {
+    return chatRooms.doc(chatRoomId).snapshots().map(
+      (snapshot) {
+        if (!snapshot.exists) {
+          return {
+            "isTyping": false,
+            "typingUser": null,
+          };
+        }
+        final data = snapshot.data() as Map<String, dynamic>;
+        return {
+          "isTyping": data["isTyping"] ?? false,
+          "typingUser": data["typingUser"],
+        };
+      },
+    );
   }
 }

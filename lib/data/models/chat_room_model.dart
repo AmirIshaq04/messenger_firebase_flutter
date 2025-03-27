@@ -35,7 +35,7 @@ class ChatRoomModel {
       ),
       lastMessage: data['lastMessage'] ?? "",
       lastMessageSenderId: data['lastMessageSenderId'] ?? "",
-      lastMessageTime: data['lastMessageTime'] ?? "",
+      lastMessageTime: data['lastMessageTime'] ?? Timestamp.now(),
       lastReadTime: Map<String, Timestamp>.from(data["lastReadTime"] ?? {}),
       participantsName: Map<String, String>.from(
         data['participantsName'] ?? {},

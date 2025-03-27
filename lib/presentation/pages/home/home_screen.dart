@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (contacts.isEmpty) {
                     Text('No Contacts yet');
                   }
-              
+
                   return ListView.builder(
                     shrinkWrap: true,
                     itemCount: contacts.length,
@@ -141,8 +141,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: chats.length,
                 itemBuilder: (context, index) {
                   final chat = chats[index];
+
                   return ChatListTile(
-                      chat: chat, currentUserId: _currentUserId, onTap: () {});
+                      chat: chat,
+                      currentUserId: _currentUserId,
+                      onTap: () {
+                        final otherUserId = chat.participants.firstWhere(
+                          (id) => id != _currentUserId,
+                          orElse: () => "",
+                        );
+                        final otherUserName =
+                            chat.participantsName![otherUserId] ?? "Unknown";
+                            
+                        getIt<AppRouter>().push(
+                          ChatMessageScreen(
+                              receiverId: otherUserId,
+                              receiverName: otherUserName),
+                        );
+                      });
                 },
               );
             }));
