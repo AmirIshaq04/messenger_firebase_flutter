@@ -53,6 +53,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Flutter Demo',
       theme: AppTheme.lightThme,
       home: BlocBuilder<AuthCubit, AuthState>(
+        bloc: getIt<AuthCubit>(),
         builder: (context, state) {
           if (state.status == AuthStatus.initial) {
             Scaffold(
