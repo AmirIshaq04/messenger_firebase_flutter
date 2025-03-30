@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:chatting_app_flutter/data/repositories/chat_repository.dart';
+import 'package:chatting_app_flutter/logic/cubits/auth/auth_state.dart';
 import 'package:chatting_app_flutter/logic/cubits/chat/chat_cubit_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +13,10 @@ class ChatCubit extends Cubit<ChatCubitState> {
   StreamSubscription? _streamSubscription;
   StreamSubscription? _onlineStatusSubscription;
   StreamSubscription? _typingSbscription;
+  StreamSubscription? _blockStatusSubscription;
+  StreamSubscription? _amIblockStatusSubscription;
   bool _isUserInChat = false;
+  Timer? typingTimer;
   ChatCubit({
     required ChatRepository ChatRepository,
     required this.currentUserId,
@@ -36,7 +40,8 @@ class ChatCubit extends Cubit<ChatCubitState> {
       _subscribeToMessages(chatRoom.id);
       _subscribeToOnlineStatus(receiverId);
       _subscribeToTypingStatus(chatRoom.id);
-      
+      _subscribeToBlockStatus(receiverId);
+
       await _chatRepository.updateOnoineStatus(currentUserId, true);
     } catch (e) {
       emit(
@@ -122,5 +127,114 @@ class ChatCubit extends Cubit<ChatCubitState> {
     }, onError: (error) {
       print(error);
     });
+  }
+
+  void _subscribeToBlockStatus(String otherUserId) {
+    _blockStatusSubscription?.cancel();
+    _amIblockStatusSubscription?.cancel();
+
+    _blockStatusSubscription = _chatRepository
+        .isUserBlocked(currentUserId, otherUserId)
+        .listen((isBlocked) {
+      _amIblockStatusSubscription =
+          _chatRepository.amIBlocked(currentUserId, otherUserId).listen(
+        (amIBlocked) {
+          emit(
+            state.copyWith(
+              isuserBlocked: isBlocked,
+              amIBlocked: amIBlocked,
+            ),
+          );
+        },
+      );
+    }, onError: (onError) {
+      print("Error blocking user$onError");
+    });
+  }
+
+  void startTyping() {
+    if (state.chatRoomId == null) {
+      return;
+    }
+    typingTimer?.cancel();
+    _updateTypingStatus(true);
+    typingTimer = Timer(const Duration(seconds: 3), () {
+      _updateTypingStatus(false);
+    });
+  }
+
+  Future<void> _updateTypingStatus(bool isTyping) async {
+    if (state.chatRoomId == null) {
+      return;
+    }
+    try {
+      await _chatRepository.updateTypingStatus(
+          state.chatRoomId!, currentUserId, isTyping);
+    } catch (e) {
+      print("Error updating typing status$e");
+    }
+  }
+
+  Future<void> blockUser(String userId) async {
+    try {
+      await _chatRepository.blockedUsers(currentUserId, userId);
+    } catch (e) {
+      emit(
+        state.copyWith(error: "Failed to block$e"),
+      );
+    }
+  }
+
+  Future<void> unBlockUser(String userId) async {
+    try {
+      await _chatRepository.unBlockedUsers(currentUserId, userId);
+    } catch (e) {
+      emit(
+        state.copyWith(error: "Failed to unblock$e"),
+      );
+    }
+  }
+
+  Future<void> loadMoreMessages() async {
+    if (state.status != ChatStatus.loded ||
+        state.messages.isEmpty ||
+        !state.hasMoreMessages ||
+        state.isUserLoadingMore) {
+      return;
+    }
+    try {
+      emit(
+        state.copyWith(isUserLoadingMore: true),
+      );
+      final lastMessage = state.messages.last;
+      final lastDoc = await _chatRepository
+          .getChatRoomMessages(
+            state.chatRoomId!,
+          )
+          .doc(lastMessage.id)
+          .get();
+      final moreMessages = await _chatRepository.getMoreMessage(
+        state.chatRoomId!,
+        lastDocument: lastDoc,
+      );
+      if (moreMessages.isEmpty) {
+        emit(
+          state.copyWith(hasMoreMessages: false, isUserLoadingMore: false),
+        );
+        return;
+      }
+      emit(
+        state.copyWith(
+          messages: [...state.messages, ...moreMessages],
+          hasMoreMessages: moreMessages.length > 20,
+          isUserLoadingMore: false,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+            error: "Failed to load messages$e", isUserLoadingMore: false),
+      );
+    }
   }
 }

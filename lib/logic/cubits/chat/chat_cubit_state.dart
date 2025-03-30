@@ -2,12 +2,7 @@ import 'package:chatting_app_flutter/data/models/chat_message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
-enum ChatStatus {
-  initial,
-  loading,
-  loded,
-  error,
-}
+enum ChatStatus { initial, loading, loded, error, isLoadingMore }
 
 class ChatCubitState extends Equatable {
   final ChatStatus status;
@@ -32,7 +27,7 @@ class ChatCubitState extends Equatable {
       this.amIBlocked = false,
       this.isReceiverTyping = false,
       this.receiverLastSeen,
-      this.hasMoreMessages = false,
+      this.hasMoreMessages = true,
       this.messages = const [],
       this.receiverId,
       this.chatRoomId});

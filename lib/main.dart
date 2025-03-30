@@ -47,26 +47,31 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: getIt<AppRouter>().navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: AppTheme.lightThme,
-      home: BlocBuilder<AuthCubit, AuthState>(
-        bloc: getIt<AuthCubit>(),
-        builder: (context, state) {
-          if (state.status == AuthStatus.initial) {
-            Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-          if (state.status == AuthStatus.authenticated) {
-            return const HomeScreen();
-          }
-          return LoginScreen();
-        },
+    return GestureDetector(
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: MaterialApp(
+        navigatorKey: getIt<AppRouter>().navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: AppTheme.lightThme,
+        home: BlocBuilder<AuthCubit, AuthState>(
+          bloc: getIt<AuthCubit>(),
+          builder: (context, state) {
+            if (state.status == AuthStatus.initial) {
+              Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            if (state.status == AuthStatus.authenticated) {
+              return const HomeScreen();
+            }
+            return LoginScreen();
+          },
+        ),
       ),
     );
   }

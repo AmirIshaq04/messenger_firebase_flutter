@@ -43,6 +43,7 @@ dependencies:
   fluttertoast: ^8.2.12
   flutter_contacts: ^1.1.9+2
   intl: ^0.20.2
+  emoji_picker_flutter: ^4.3.0
 
 dev_dependencies:
   flutter_test:

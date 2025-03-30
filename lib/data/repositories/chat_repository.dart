@@ -1,5 +1,6 @@
 import 'package:chatting_app_flutter/data/models/chat_message.dart';
 import 'package:chatting_app_flutter/data/models/chat_room_model.dart';
+import 'package:chatting_app_flutter/data/models/user_models.dart';
 import 'package:chatting_app_flutter/data/services/base_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -193,6 +194,75 @@ class ChatRepository extends BaseRepository {
           "isTyping": data["isTyping"] ?? false,
           "typingUser": data["typingUser"],
         };
+      },
+    );
+  }
+
+  Future<void> updateTypingStatus(
+    String chatRoomId,
+    String userId,
+    bool isTyping,
+  ) async {
+    try {
+      final doc = await chatRooms.doc(chatRoomId).get();
+      if (!doc.exists) {
+        return;
+      }
+      await chatRooms.doc(chatRoomId).update({
+        "isTyping": isTyping,
+        "typingUser": isTyping ? userId : null,
+      });
+    } catch (e) {
+      print("Error");
+    }
+  }
+
+  Future<void> blockedUsers(String currentUserId, String blockedUserId) async {
+    final userRef = firebaseFirestor.collection("users").doc(currentUserId);
+    await userRef.update(
+      {
+        "blockedUsers": FieldValue.arrayUnion(
+          [blockedUserId],
+        ),
+      },
+    );
+  }
+
+  Future<void> unBlockedUsers(
+      String currentUserId, String blockedUserId) async {
+    final userRef = firebaseFirestor.collection("users").doc(currentUserId);
+    await userRef.update(
+      {
+        "blockedUsers": FieldValue.arrayRemove(
+          [blockedUserId],
+        ),
+      },
+    );
+  }
+
+  Stream<bool> isUserBlocked(String currentUserId, String otherUserId) {
+    return firebaseFirestor
+        .collection("users")
+        .doc(currentUserId)
+        .snapshots()
+        .map(
+      (doc) {
+        final userData = UserModels.fromFirestore(doc);
+        return userData.blockedUsers
+            .contains(otherUserId); // Check for otherUserId
+      },
+    );
+  }
+
+  Stream<bool> amIBlocked(String currentUserId, String otherUserId) {
+    return firebaseFirestor
+        .collection("users")
+        .doc(otherUserId)
+        .snapshots()
+        .map(
+      (doc) {
+        final userData = UserModels.fromFirestore(doc);
+        return userData.blockedUsers.contains(currentUserId); 
       },
     );
   }
